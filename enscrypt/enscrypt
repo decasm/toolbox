@@ -1,0 +1,39 @@
+#!/bin/bash
+# Begin enscrypt
+##############
+#$# creator : Devon Smith
+#%# email: smithde@oclc.org
+#$# created : 2013-03-15
+#$# title : enscrypt
+#$# description : 
+#$# usage : 
+#$# based_on: http://www.commandlinefu.com/commands/view/11985/encrypt-and-password-protect-execution-of-any-bash-script
+########## Setup some common paths
+# The absolute, canonical ( no ".." ) path to this script
+canonical=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")")
+this=$(basename $canonical) # Just the filename of this script
+here=$(dirname $canonical)  # The directory this script is in
+########## Source common start up stuff
+[ -f "$here/.bash_common" ] && source $here/.bash_common
+##########
+
+script=$1
+if [ ! -f "$script" ]
+then
+	echo Usage: $0 '<script> [enscrypted]'
+	exit;
+fi
+
+enscrypted=$2
+if [ -z "$enscrypted" ]
+then
+	enscrypted=${script}.scrypt
+fi
+
+echo 'eval "$(dd if=$0 bs=1 skip=XX 2>/dev/null|gpg -d 2>/dev/null)"; exit' > $enscrypted
+sed -i s:XX:$(stat -c%s $enscrypted): $enscrypted;
+gpg -c < $script >> $enscrypted
+chmod +x $enscrypted
+
+# End enscrypt
+# vim:ts=4:indentexpr=
