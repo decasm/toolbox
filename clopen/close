@@ -1,0 +1,113 @@
+#!/bin/bash
+# Begin close
+##############
+#$# creator : Devon Smith
+#%# email: decasm@gmail.com
+#$# created : 2005-12-14
+#$# title : close
+#$# description : "Close" a directory by creating a TGZ of it.
+########## Define a usage function 
+function usage {
+    echo "Usage: $this [-e] directory [file]"
+    echo "       -e encrypt the file"
+    if [ "$1" = "exit" ]; then exit; fi
+}
+########## Set to "false" to turn verbose off
+function echo_stdout { echo "$@"; }
+function echo_stderr { echo "$@" >& 2; }
+# Set verbose to 'echo_stderr' or 'echo_stdout' to see output trace info
+verbose=false
+$verbose Verbose output on ${verbose##*_}
+########## Setup some common paths
+# The absolute, canonical ( no ".." ) path to this script
+canonical=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")")
+# Just the filename of this script
+this=$(basename $canonical)
+$verbose This: $this
+# The directory this script is in
+here=$(dirname $canonical)
+$verbose Here: $here
+########## When the script is being executed
+today=$(date +%F)
+now=$(date +%H:%M:%S)
+$verbose Time: $today $now
+##########
+ENCRYPT=0
+ENCRYPT_ALGO=aes256
+EXCLUDE=" --exclude=*.swp --exclude-vcs "
+##########
+
+while getopts "e" opt ; do
+  if [ "$opt" = "e" ]; then
+    ENCRYPT=1
+  fi
+done
+shift $((OPTIND-1))
+
+DIR=$1
+test "$DIR" = "" && DIR=$PWD
+test ! -e "$DIR" && echo "Problem: $DIR does not exist"     && usage 'exit'
+test ! -d "$DIR" && echo "Problem: $DIR is not a directory" && usage 'exit'
+test ! -r "$DIR" && echo "Problem: $DIR is not a readable"  && usage 'exit'
+
+if [ "${DIR:0:1}" != "/" ]
+then # parameter is relative
+	# ... canonicalize it
+	DIR=$(cd -P -- "$(dirname -- "$DIR")" && printf '%s\n' "$(pwd -P)/$(basename -- "$DIR")")
+fi
+$verbose Directory: $DIR
+
+# A custom close script can be written for a directory.
+# Put it in the PATH with the name close.${directory}
+# EG, close.project.
+# Whenever you close any directory named 'project', the custom script will be called.
+which $this.$(basename -- $DIR) > /dev/null 2> /dev/null
+if [ $? = "0" ]; then
+	echo "Using custom closer"
+	$(which $this.$(basename -- $DIR))
+	exit
+fi
+
+FILE=$2
+if [ "$FILE" = "" ]
+then
+	FILE=$DIR.tgz
+fi
+$verbose "     File: $FILE"
+
+if [ -e "$FILE" ]
+then
+	if [ ! -w "$FILE" ]
+	then
+		# If $FILE exists, make sure it is writable
+		echo "Problem: $FILE exists but is not writable"
+		exit 1
+	fi
+else
+	DIR2=$(dirname $FILE)
+	if [ ! -w "$DIR2" ]
+	then
+		# If $FILE does not exist, make sure its directory is writable
+		echo "Problem: directory $DIR2 is not writable"
+		exit 1
+	fi
+fi
+
+# The -C changes the directory to the parent of the target directory
+# The dirname gets that parent directory
+# The basename gets the name of the target, independent of it's parent
+# This is done so that the filenames are not absolute, but relative
+if [ "$ENCRYPT" = "1" ]
+then
+	FILE=$FILE.gpg
+	echo "Closing \"$DIR\" to \"$FILE\" ..."
+	tar zchf - $EXCLUDE -C $(dirname "$DIR") $(basename "$DIR") | gpg -c --cipher-algo $ENCRYPT_ALGO -o $FILE
+else
+	echo "Closing \"$DIR\" to \"$FILE\" ..."
+	tar zchf "$FILE" $EXCLUDE -C $(dirname "$DIR") $(basename "$DIR")
+fi
+echo "Finished: $DIR -> $FILE"
+
+############
+# End close
+# vim:ts=4:indentexpr=

@@ -1,0 +1,93 @@
+#!/bin/bash
+# Begin open
+##############
+#$# creator : Devon Smith
+#%# email: decasm@gmail.com
+#$# created : 2005-12-15
+#$# title : open
+#$# description : "Open" a TGZ that has previously been "closed".
+########## Define a usage function 
+function usage {
+    echo "Usage: $this file.tgz [directory]"
+    if [ "$1" = "exit" ]; then exit; fi
+}
+########## Set to "false" to turn verbose off
+function echo_stdout { echo "$@"; }
+function echo_stderr { echo "$@" >& 2; }
+# Set verbose to 'echo_stderr' or 'echo_stdout' to see output trace info
+verbose=false
+$verbose Verbose output on ${verbose##*_}
+########## Setup some common paths
+# The absolute, canonical ( no ".." ) path to this script
+canonical=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")")
+# Just the filename of this script
+this=$(basename $canonical)
+$verbose This: $this
+# The directory this script is in
+here=$(dirname $canonical)
+$verbose Here: $here
+########## When the script is being executed
+today=$(date +%F)
+now=$(date +%H:%M:%S)
+$verbose Time: $today $now
+##########
+
+# Get the (required) TGZ file to open
+FILE=$1
+test "$FILE" = "" && echo "Problem: No file specified" && exit 
+test ! -e "$FILE" && echo "Problem: $FILE does not exist" && exit 
+test ! -r "$FILE" && echo "Problem: $FILE is not readable" && exit 
+test   -d "$FILE" && echo "Problem: $FILE is a directory" && exit 
+
+EXT=""
+# TYPE=$(file -b --mime-type $FILE)
+if [ ${FILE##*.} = "tgz" ]
+then
+	EXT=tgz
+elif [ ${FILE##*.} = "gpg" ] 
+then
+	EXT=tgz.gpg
+else
+	echo "Problem: $FILE is neither TGZ nor GPG"
+	exit
+fi
+
+
+# Get the (optional) directory into which the TGZ should be opened
+# Default to PWD
+DIR=${2:-$PWD}
+test ! -d "$DIR" && echo "Problem: $DIR is not a directory" && exit 
+test ! -w "$DIR" && echo "Problem: $DIR is not a writable" && exit 
+
+if [ "${DIR:0:1}" != "/" ]
+then # DIR is relative
+	# canonicalize it
+	DIR=$(cd -P -- "$(dirname -- "$DIR")" && printf '%s\n' "$(pwd -P)/$(basename -- "$DIR")")
+fi
+
+# A custom open script can be written for a directory.
+# Put it in the PATH with the name open.${directory}
+# EG, open.project
+# Whenever you open any directory named 'project', the custom script will be called.
+which $this.${FILE%.$EXT} > /dev/null 2> /dev/null
+if [ $? = "0" ]
+then
+	echo "Using custom opener"
+	$(which $this.${FILE%.$EXT}) $FILE $DIR
+	exit
+fi
+
+echo "Opening $FILE into $DIR ..."
+
+if [ $EXT = "tgz" ]
+then
+	tar zxf "$FILE" -C "$DIR"
+else
+	gpg -o- "$FILE" | tar zxf - -C "$DIR"
+fi
+
+echo "Finished. $FILE -> $DIR"
+
+############
+# End open
+# vim:ts=4:indentexpr=

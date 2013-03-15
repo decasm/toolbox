@@ -1,0 +1,21 @@
+#!/bin/bash
+# Begin open.test_custom
+this=$(basename $0)
+echo Custom opener \"$this\"
+
+FILE=$1
+DIR=$2
+EXT=${FILE##*.}
+
+if [ "$EXT" = "gpg" ]
+then
+	gpg --batch --passphrase passphrase -o test_custom.tgz test_custom.tgz.gpg
+	# Don't put your passphrases in a script. This is just for testing.
+	EXT=tgz
+fi
+
+if [ "$EXT" = "tgz" ]
+then
+	tar zxvf test_custom.tgz
+fi
+# End open.test_custom

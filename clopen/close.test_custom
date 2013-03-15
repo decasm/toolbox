@@ -1,0 +1,9 @@
+#!/bin/bash
+# Begin close.test_custom
+this=$(basename $0)
+echo Custom closer \"$this\"
+tar zcvf test_custom.tgz test_custom
+gpg -c --batch --passphrase passphrase --cipher-algo aes256 -o test_custom.tgz.gpg test_custom.tgz
+# Don't put your passphrases in a script. This is just for testing.
+
+# End close.test_custom
