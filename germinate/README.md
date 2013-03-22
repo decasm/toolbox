@@ -29,6 +29,9 @@ Requires the following Perl modules:
 * Getopt::Std
 
 
+Usage
+-----
+
 	Usage:	germinate [ -l | -y ] | -s seed [ KEY=VALUE ]\* [ -o output-file ] [ -c config-file ]
 		-l: list available seeds 
 		-y: list available seeds as YAML
