@@ -16,45 +16,37 @@ use strict;
 
 my %opts;
 getopt("yls:c:o:", \%opts);
-exit &usage unless %opts;
+&usage('exit') unless %opts;
 
+our $ConfDir = $ENV{XDG_CONFIG_HOME}
+	? "$ENV{XDG_CONFIG_HOME}/germinate"
+	: "$ENV{HOME}/.config/germinate";
 our $DefaultConfig = 'config.yaml';
-our @SeedDirectories = qw(/usr/share/germinate/seeds);
-
-my $dot_directory = "$ENV{'HOME'}/.germinate";
-unshift @SeedDirectories, "$dot_directory/seeds";
+our @SeedDirectories = ('/usr/share/germinate/seeds', "$ConfDir/seeds");
 
 my $tt = new Template ({ TAG_STYLE => 'star', INCLUDE_PATH => \@SeedDirectories });
 
-# File for replacement values
-my $conf = "$dot_directory/$DefaultConfig";
+&list(\%opts) and exit if exists $opts{l} or exists $opts{y};
+&usage('exit') unless defined $opts{s};
+
+# Source file for replacement values
+my $conf = "$ConfDir/$DefaultConfig";
 $conf = $opts{c} if $opts{c};
 
-&list(\%opts) and exit if exists $opts{l} or exists $opts{y};
-&usage and exit unless defined $opts{s};
-
-# Get the replcaement value hash
+# Get the replacement value hash
 my $data = &getReplacementValues($conf);
-$data->{DATE} = ctime(time);
+$data->{DATE} = ctime(time) and chomp($data->{DATE}) unless $data->{DATE};
 
-# Process command-line KEY=VALUE pairs - precedent over Config pairs
-for ( @ARGV ) {
-	next unless /=/;
-	my ($k, $v) = split /=/;
-	$data->{$k} = $v;
-}
-
-my $fh;
+my $fh = \*STDOUT;
 if ( defined $opts{o} ) {
 	# If an output file is specified, add file name and extension to replacement hash
 	open $fh, '>', "$opts{o}" or die "Can't open output file '$opts{o}':\$n$!";
-	my $name = substr $opts{o}, 0, rindex ($opts{o}, '.');
-	my $ext = substr $opts{o}, rindex ($opts{o}, '.');
-	$data->{FILE} = $name;
-	$data->{EXT} = $ext;
+	my ($name, $ext);
+	$data->{FILE} = $opts{o};
+	$data->{EXT} = rindex ($opts{o}, '.') > 0 
+		? substr $opts{o}, rindex ($opts{o}, '.') + 1
+		: '';
 }
-$fh = \*STDOUT unless $fh;
-
 
 my $seed = $opts{s};
 if ( grep { -f "$_/$seed" } @SeedDirectories ) {
@@ -63,12 +55,20 @@ if ( grep { -f "$_/$seed" } @SeedDirectories ) {
 else {
 	print "Seed - \"$opts{s}\" - not available\n";
 }
+close $fh if defined $opts{o};
 
 
 # Get template replacement values from config file
 sub getReplacementValues {
 	my $file = shift;
-	return -f $file ? LoadFile($file) : undef;
+	my $repl = -f $file ? LoadFile($file) : {};
+	# Process command-line KEY=VALUE pairs - take precedent over configured pairs
+	for ( @ARGV ) {
+		next unless /=/;
+		my ($k, $v) = split /=/;
+		$repl->{$k} = $v;
+	}
+	return $repl;
 }
 
 # List available templates
@@ -99,11 +99,12 @@ sub usage {
 \t-y: list available seeds as YAML
 \t-s: seed to germinate
 \t-o: output file (Default: STDOUT)
-\t-c: configuration file (Default: \$HOME/.germinate/config.yaml)
+\t-c: configuration file (Default: \$XDG_CONFIG_HOME/germinate/config.yaml)
 \tKEY=VALUE: Used while processing a seed
 \t         : These overwrite keys listed in config file
 \t         : The date of germination is always available in the DATE key.
 ";
+	exit if shift eq 'exit';
 }
 
 ######## 

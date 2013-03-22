@@ -1,0 +1,5 @@
+---
+AUTHOR: Jane Doe
+AUTHOR_EMAIL: jane_doe@example.com
+VIM: vim:ts=4:indentexpr=
+VIM_XML: vim:ts=2:indentexpr=

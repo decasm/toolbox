@@ -1,5 +1,5 @@
 #!/bin/bash
-# Begin [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]script[* END *]
+# Begin [* IF FILE; FILE; ELSE; "script"; END *]
 ##############
 #$# creator : [* AUTHOR *]
 #%# email: [* AUTHOR_EMAIL *]
@@ -36,5 +36,5 @@ now=$(date +%H:%M:%S)
 ### SCRIPT CODE HERE 
 
 
-# End [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]script[* END *]
+# End [* IF FILE; FILE; ELSE; "script"; END *]
 # [* VIM *]

@@ -1,5 +1,5 @@
 package [* PACKAGENAME *]
-# Begin [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]module[* END *]
+# Begin [* IF FILE; FILE; ELSE; "module"; END *]
 ########
 #$# creator : [* AUTHOR *]
 #%# email: [* AUTHOR_EMAIL *]
@@ -27,5 +27,5 @@ sub new {
 
 1;
 ########
-# End [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]module[* END *]
+# End [* IF FILE; FILE; ELSE; "module"; END *]
 # [* VIM *]
