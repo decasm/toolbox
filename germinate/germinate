@@ -1,0 +1,111 @@
+#!/usr/bin/perl -w
+# Begin germinate
+######## 
+#$# title: germinate
+#$# creator: Devon Smith
+#%# email: decasm@gmail.com
+#$# description: Print to STDOUT a processed template file.
+#__# The kind of template is determined by the argument to '-g'.
+######## 
+
+use Date::Format;
+use Template;
+use YAML qw(LoadFile Dump);
+use Getopt::Std;
+use strict;
+
+my %opts;
+getopt("yls:c:o:", \%opts);
+exit &usage unless %opts;
+
+our $DefaultConfig = 'config.yaml';
+our @SeedDirectories = qw(/usr/share/germinate/seeds);
+
+my $dot_directory = "$ENV{'HOME'}/.germinate";
+unshift @SeedDirectories, "$dot_directory/seeds";
+
+my $tt = new Template ({ TAG_STYLE => 'star', INCLUDE_PATH => \@SeedDirectories });
+
+# File for replacement values
+my $conf = "$dot_directory/$DefaultConfig";
+$conf = $opts{c} if $opts{c};
+
+&list(\%opts) and exit if exists $opts{l} or exists $opts{y};
+&usage and exit unless defined $opts{s};
+
+# Get the replcaement value hash
+my $data = &getReplacementValues($conf);
+$data->{DATE} = ctime(time);
+
+# Process command-line KEY=VALUE pairs - precedent over Config pairs
+for ( @ARGV ) {
+	next unless /=/;
+	my ($k, $v) = split /=/;
+	$data->{$k} = $v;
+}
+
+my $fh;
+if ( defined $opts{o} ) {
+	# If an output file is specified, add file name and extension to replacement hash
+	open $fh, '>', "$opts{o}" or die "Can't open output file '$opts{o}':\$n$!";
+	my $name = substr $opts{o}, 0, rindex ($opts{o}, '.');
+	my $ext = substr $opts{o}, rindex ($opts{o}, '.');
+	$data->{FILE} = $name;
+	$data->{EXT} = $ext;
+}
+$fh = \*STDOUT unless $fh;
+
+
+my $seed = $opts{s};
+if ( grep { -f "$_/$seed" } @SeedDirectories ) {
+	$tt->process($seed, $data, $fh) or die $tt->error();
+}
+else {
+	print "Seed - \"$opts{s}\" - not available\n";
+}
+
+
+# Get template replacement values from config file
+sub getReplacementValues {
+	my $file = shift;
+	return -f $file ? LoadFile($file) : undef;
+}
+
+# List available templates
+sub list {
+	my $opts = shift;
+	my %list;
+	for my $dir (@SeedDirectories) {
+		next unless -d $dir;
+		opendir DIR, $dir;
+		map { -f "$dir/$_" && push @{ $list{$_} }, $dir } grep { $_ !~ /^\.{1,2}/;} readdir DIR;
+		closedir DIR;
+	}
+	my @list = sort keys %list;
+	if ( exists $opts{y} ) {
+		print Dump(\@list);
+	}
+	else {
+		map { print "$_\n" } @list;
+	}
+	1; # return 1 so that "&list and exit" (above) will work correctly.
+}
+
+# Print usage message
+sub usage {
+	(my $bin = $0) =~ s,^.*/,,;
+	print "Usage:\t$bin [ -l | -y ] | -s seed [ KEY=VALUE ]* [ -o output-file ] [ -c config-file ]
+\t-l: list available seeds 
+\t-y: list available seeds as YAML
+\t-s: seed to germinate
+\t-o: output file (Default: STDOUT)
+\t-c: configuration file (Default: \$HOME/.germinate/config.yaml)
+\tKEY=VALUE: Used while processing a seed
+\t         : These overwrite keys listed in config file
+\t         : The date of germination is always available in the DATE key.
+";
+}
+
+######## 
+# End germinate
+# vim:ts=4:indentexpr=

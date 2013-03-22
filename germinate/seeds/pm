@@ -1,0 +1,31 @@
+package [* PACKAGENAME *]
+# Begin [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]module[* END *]
+########
+#$# creator : [* AUTHOR *]
+#%# email: [* AUTHOR_EMAIL *]
+#$# created : [* DATE *]
+#$# title : [* IF TITLE; TITLE; ELSE; FILE; END *]
+#$# description : 
+######## Standard use lines
+use strict;
+use warnings;
+#use Log::Log4perl qw(:easy);
+#use YAML qw(LoadFile DumpFile Dump);
+#use Template;
+#use lib '/some/path';
+#require Exporter;
+########
+#Log::Log4perl->easy_init($DEBUG);
+#our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
+########
+
+sub new {
+	my ($pkg) = @_;
+	my $class = ref($pkg) || $pkg;
+	my $self = $class->SUPER::new();
+}
+
+1;
+########
+# End [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]module[* END *]
+# [* VIM *]

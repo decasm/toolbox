@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+# Begin [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]script[* END *]
+######## 
+#$# creator : [* AUTHOR *]
+#%# email: [* AUTHOR_EMAIL *]
+#$# created : [* DATE *]
+#$# title : [* IF TITLE; TITLE; ELSE; FILE; END *]
+#$# description : 
+######## Define a usage function 
+sub usage {
+	(my $bin = $0) =~ s,^.*/,,;
+	print "Usage:\t$bin\n";
+	exit if shift eq 'exit';
+}
+######## Standard use lines
+use strict;
+use warnings;
+#use Log::Log4perl qw(:easy);
+#use YAML qw(LoadFile DumpFile Load Dump);
+#use Template;
+#use lib '/some/path';
+######## 
+#Log::Log4perl->easy_init($DEBUG);
+######## 
+
+
+######## 
+# End [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]script[* END *]
+# [* VIM *]

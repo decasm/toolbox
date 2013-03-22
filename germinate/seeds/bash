@@ -1,0 +1,40 @@
+#!/bin/bash
+# Begin [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]script[* END *]
+##############
+#$# creator : [* AUTHOR *]
+#%# email: [* AUTHOR_EMAIL *]
+#$# created : [* DATE *]
+#$# title : 
+#$# description : 
+#$# usage : 
+########## Define a usage function
+function usage {
+        echo "Usage: $this args"
+        if [ "$1" = "exit" ]; then exit; fi
+}
+########## Set to "false" to turn verbose off
+function echo_stdout { echo "$@"; }
+function echo_stderr { echo "$@" >& 2; }
+# Set verbose to 'echo_stderr' or 'echo_stdout' to see output trace info
+verbose=false
+$verbose Verbose output on ${verbose##*_}
+########## Setup some common paths
+# The absolute, canonical ( no ".." ) path to this script
+canonical=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")")
+# Just the filename of this script
+this=$(basename $canonical)
+$verbose This: $this
+# The directory this script is in
+here=$(dirname $canonical)
+$verbose Here: $here
+########## When the script is being executed
+today=$(date +%F)
+now=$(date +%H:%M:%S)
+##########
+
+
+### SCRIPT CODE HERE 
+
+
+# End [* IF FILE *][* FILE _ '.' _ EXT *][* ELSE *]script[* END *]
+# [* VIM *]
