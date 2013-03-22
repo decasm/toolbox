@@ -17,10 +17,10 @@ styles to be embedded so that you can create a template of a template.
 You can customize the values that populate a seed when germinated in two
 ways. You can put constants in a configuration file or you can supply
 key=value pairs on the commandline. The file for constants is at
-$XDG_CONFIG_HOME/germinate/config.yaml. A sample configuration files is
-available in /usr/share/germinate/config.yaml.sample. Key-value pairs can
-also be supplied on the command line. Pass as many KEY=VALUE parameters as
-needed and they will be available in the seeds.
+$XDG_CONFIG_HOME/germinate/config.yaml. A sample configuration file is
+provided. Key-value pairs can also be supplied on the command line. Pass as
+many KEY=VALUE parameters as needed and they will be available in the
+seeds.
 
 Requires the following Perl modules:
 * YAML
@@ -32,7 +32,7 @@ Requires the following Perl modules:
 Usage
 -----
 
-	Usage:	germinate [ -l | -y ] | -s seed [ KEY=VALUE ]\* [ -o output-file ] [ -c config-file ]
+	Usage:	germinate [ -l | -y ] | -s seed [ KEY=VALUE ]* [ -o output-file ] [ -c config-file ]
 		-l: list available seeds 
 		-y: list available seeds as YAML
 		-s: seed to germinate
