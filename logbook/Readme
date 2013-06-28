@@ -1,0 +1,21 @@
+
+This is a script which will run all the scripts in a
+specific directory every day. These scripts are intended to
+collect information about what has changed on the system
+that day.
+
+It will run all executable files in $HOME/lib/notebook. An
+environment variable will be set for each, NBDEST, set to a
+directory for the current date, default is
+$HOME/var/notebook/YYYY/MMDD/
+
+These are the two crontab entries that each user would have
+to set up.
+
+# Every week day, early in the morning, 12:30
+30 0 * * 1-5 /usr/local/bin/notebook setup
+
+# Every week day, just before midnight
+59 23 * * 1-5 /usr/local/bin/notebook nightly
+
+

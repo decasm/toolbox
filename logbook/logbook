@@ -1,0 +1,58 @@
+#!/bin/bash
+# Begin logbook
+
+#$# creator : Devon Smith
+#%# email: smithde@oclc.org
+#$# created : 2006-07-28
+#$# title : logbook
+#$# description : Wrapper script for misc activities on the logbook
+
+#$# updated: 2013-06-28
+
+this=$(basename $0)
+here=$(dirname $0)
+
+lb_lib=$HOME/lib/logbook
+lb_var=$HOME/var/logbook
+
+[ -d $lb_var ] || mkdir -p $lb_var
+
+# save args
+args="$@"
+
+# use set to "parse" date string
+set X $(date "+%Y %m %d")
+case "$#" in
+	4) yr=$2; mo=$3; da=$4 ;;
+	*) exit 1 ;;
+esac
+
+# Reset the args
+set "$args"
+
+# ---
+dest="$lb_var/$yr/${mo}${da}"
+
+if [ "$1" = "setup" ]
+then
+	# make the directory for today in the logbook
+	mkdir -p $dest
+elif [ "$1" = "nightly" ]
+then 
+	for script in $lb_lib/*
+	do
+		if [ -x $script ]; then
+			LBDEST="$dest" $script
+		fi
+	done
+
+	# remove empty files
+	for file in $dest/*
+	do
+		# if the file is empty, remove it
+		if [ ! -s "$file" ]; then rm "$file"; fi
+	done
+fi
+
+# End logbook
+# vim: ts=4 noet:
