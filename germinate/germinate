@@ -12,6 +12,7 @@ use Date::Format;
 use Template;
 use YAML qw(LoadFile Dump);
 use Getopt::Std;
+use File::Spec;
 use strict;
 
 my %opts;
@@ -59,8 +60,12 @@ if ( defined $opts{s} ) {
 }
 elsif ( defined $opts{f} ) {
 	my $file = $opts{f};
-	if ( -f "$ENV{PWD}/$file" ) {
-		$tt->process("$ENV{PWD}/$file", $data, $fh) or die $tt->error();
+
+	if ( ! File::Spec->file_name_is_absolute($file) ) {
+		$file = File::Spec->canonpath("$ENV{PWD}/$file");
+	}
+	if ( -f $file ) {
+		$tt->process($file, $data, $fh) or die $tt->error();
 	}
 	else {
 		print "Seed file - \"$file\" - not a file\n";
