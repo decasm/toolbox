@@ -15,7 +15,7 @@ use Getopt::Std;
 use strict;
 
 my %opts;
-getopt("yls:c:o:", \%opts);
+getopt("yls:f:c:o:", \%opts);
 &usage('exit') unless %opts;
 
 our $ConfDir = $ENV{XDG_CONFIG_HOME}
@@ -24,10 +24,10 @@ our $ConfDir = $ENV{XDG_CONFIG_HOME}
 our $DefaultConfig = 'config.yaml';
 our @SeedDirectories = ('/usr/share/germinate/seeds', "$ConfDir/seeds");
 
-my $tt = new Template ({ TAG_STYLE => 'star', INCLUDE_PATH => \@SeedDirectories });
+my $tt = new Template ({ TAG_STYLE => 'star', INCLUDE_PATH => \@SeedDirectories, ABSOLUTE => 1 });
 
 &list(\%opts) and exit if exists $opts{l} or exists $opts{y};
-&usage('exit') unless defined $opts{s};
+&usage('exit') unless defined $opts{s} or defined $opts{f};
 
 # Source file for replacement values
 my $conf = "$ConfDir/$DefaultConfig";
@@ -48,12 +48,23 @@ if ( defined $opts{o} ) {
 		: '';
 }
 
-my $seed = $opts{s};
-if ( grep { -f "$_/$seed" } @SeedDirectories ) {
-	$tt->process($seed, $data, $fh) or die $tt->error();
+if ( defined $opts{s} ) {
+	my $seed = $opts{s};
+	if ( grep { -f "$_/$seed" } @SeedDirectories ) {
+		$tt->process($seed, $data, $fh) or die $tt->error();
+	}
+	else {
+		print "Seed - \"$opts{s}\" - not available\n";
+	}
 }
-else {
-	print "Seed - \"$opts{s}\" - not available\n";
+elsif ( defined $opts{f} ) {
+	my $file = $opts{f};
+	if ( -f "$ENV{PWD}/$file" ) {
+		$tt->process("$ENV{PWD}/$file", $data, $fh) or die $tt->error();
+	}
+	else {
+		print "Seed file - \"$file\" - not a file\n";
+	}
 }
 close $fh if defined $opts{o};
 
@@ -94,10 +105,11 @@ sub list {
 # Print usage message
 sub usage {
 	(my $bin = $0) =~ s,^.*/,,;
-	print "Usage:\t$bin [ -l | -y ] | -s seed [ KEY=VALUE ]* [ -o output-file ] [ -c config-file ]
+	print "Usage:\t$bin [ -l | -y ] | [ -s seed | -f file ] [ KEY=VALUE ]* [ -o output-file ] [ -c config-file ]
 \t-l: list available seeds 
 \t-y: list available seeds as YAML
 \t-s: seed to germinate
+\t-f: seed file
 \t-o: output file (Default: STDOUT)
 \t-c: configuration file (Default: \$XDG_CONFIG_HOME/germinate/config.yaml)
 \tKEY=VALUE: Used while processing a seed
